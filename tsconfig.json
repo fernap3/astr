@@ -1,9 +1,6 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
-		"paths": {
-			"include": [ "src/" ]
-		},
 		"outDir": "bin/",
 		"target": "esnext",
 		"module": "commonjs",
@@ -12,6 +9,7 @@
 		"noImplicitThis": true,
 		"strict": true
 	},
+	"include": [ "src/" ],
 	"exclude": [
 		"node_modules"
 	]

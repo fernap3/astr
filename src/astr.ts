@@ -2,18 +2,13 @@ import dotenv = require("dotenv");
 dotenv.config();
 
 import process = require("process");
+import fs = require("fs");
 
 const tests: Test[] = [];
 
-export class Astr
+export function registerTest(test: Test): void
 {
-	public test(testName: string, test: (assert: Assert) => Promise<void>): void
-	{
-		tests.push({
-			name: testName,
-			func: test,
-		});
-	}
+	tests.push(test);
 }
 
 class Assert
@@ -64,25 +59,15 @@ const consoleColors = {
 	BgWhite: "\x1b[47m",
 };
 
-// Get this information by running:
-// instruments -s devices
-const opts = {
-    platformName: "iOS",
-    platformVersion: "12.4",
-	deviceName: "iPhone Simulator",
-	udid: process.env.TEST_UDID,
-    app: process.env.TEST_APPPATH,
-	automationName: "XCUITest",
-	fullReset: false,
-};
-
-require("./tests.js");
 
 (async () =>
 {
 	const passedTests = [];
 	const failedTests = [];
 	let singleTestToRun = null;
+
+	// Looks for test files in the user-input test dir and requires them.
+	scrapeTests();
 
 	if (process.argv[2] && process.argv[2].trim())
 	{
@@ -156,3 +141,7 @@ require("./tests.js");
 		process.exit(0);
 })();
 
+function scrapeTests(testDir: string)
+{
+	require("tests.js");
+}
