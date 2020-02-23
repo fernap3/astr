@@ -1,0 +1,26 @@
+{
+  "name": "astr",
+  "version": "1.0.0",
+  "description": "A test runner written in TypeScript",
+  "main": "astr.js",
+  "scripts": {
+	"test": "npm run build && node bin/astr.js",
+	"build": "node node_modules/typescript/bin/tsc -p tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fernap3/astr.git"
+  },
+  "author": "Peter Fernandes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fernap3/astr/issues"
+  },
+  "homepage": "https://github.com/fernap3/astr#readme",
+  "dependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^13.7.4",
+    "dotenv": "^8.2.0",
+    "typescript": "^3.8.2"
+  }
+}
