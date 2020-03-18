@@ -4,7 +4,7 @@
   "description": "A test runner written in TypeScript",
   "main": "astr.js",
   "scripts": {
-    "test": "npm run build && node bin/run-tests.js --testdir example-tests/",
+    "test": "npm run build && node bin/run-tests.js --testdir bin/example-tests",
     "build": "node node_modules/typescript/bin/tsc -p tsconfig.json"
   },
   "repository": {
