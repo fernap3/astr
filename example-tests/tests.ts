@@ -1,4 +1,4 @@
-import { registerTest } from "./src/astr.js";
+const { registerTest } = require("../bin/src/astr.js") as typeof import("../src/astr");
 
 registerTest({
 	name: "New user Email login",

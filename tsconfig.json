@@ -2,14 +2,15 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"outDir": "bin/",
-		"target": "esnext",
+		"target": "es2017",
 		"module": "commonjs",
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
-		"strict": true
+		"strict": true,
+		"sourceMap": true
 	},
-	"include": [ "src/" ],
+	"include": [ "src/", "example-tests/" ],
 	"exclude": [
 		"node_modules"
 	]

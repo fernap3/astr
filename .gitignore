@@ -1,3 +1,5 @@
 .env
 bin/
+src/**/*.js
+example-tests/*.js
 node_modules/

@@ -4,8 +4,8 @@
   "description": "A test runner written in TypeScript",
   "main": "astr.js",
   "scripts": {
-	"test": "npm run build && node bin/astr.js",
-	"build": "node node_modules/typescript/bin/tsc -p tsconfig.json"
+    "test": "npm run build && node bin/run-tests.js --testdir example-tests/",
+    "build": "node node_modules/typescript/bin/tsc -p tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,9 @@
   "dependencies": {
     "@types/dotenv": "^8.2.0",
     "@types/node": "^13.7.4",
+    "@types/yargs": "^15.0.4",
     "dotenv": "^8.2.0",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.2",
+    "yargs": "^15.3.1"
   }
 }
