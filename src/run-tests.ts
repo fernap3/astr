@@ -128,7 +128,7 @@ function scrapeTests(testDir: string)
 		if (!(/.js$/.test(fileName)))
 			continue;
 		
-		console.log(`Requiring ${path.join(testDir, fileName)}`)
+		console.log(`Found tests in ${path.join(testDir, fileName)}`)
 		require(path.join(testDir, fileName));
 	}
 }

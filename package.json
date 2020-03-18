@@ -2,10 +2,10 @@
   "name": "tsc-test",
   "version": "1.0.0",
   "description": "A test runner written in TypeScript",
-  "main": "tsc-test.js",
   "scripts": {
     "test": "npm run build && node bin/run-tests.js --testdir bin/example-tests",
-    "build": "node node_modules/typescript/bin/tsc -p tsconfig.json"
+	"build": "npx tsc -p tsconfig.json",
+	"postinstall": "npm run build && cp src/tsc-test.ts ./index.ts"
   },
   "repository": {
     "type": "git",
