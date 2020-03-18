@@ -1,22 +1,22 @@
 {
-  "name": "tsc-test",
+  "name": "typescript-test",
   "version": "1.0.0",
   "description": "A test runner written in TypeScript",
   "scripts": {
     "test": "npm run build && node bin/run-tests.js --testdir bin/example-tests",
 	"build": "npx tsc -p tsconfig.json",
-	"postinstall": "npm run build && cp src/tsc-test.ts ./index.ts"
+	"postinstall": "npm run build && cp src/typescript-test.ts ./index.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fernap3/tsc-test.git"
+    "url": "git+https://github.com/fernap3/typescript-test.git"
   },
   "author": "Peter Fernandes <supersonicandtails@gmail.com> (https://pfernandes.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fernap3/tsc-test/issues"
+    "url": "https://github.com/fernap3/typescript-test/issues"
   },
-  "homepage": "https://github.com/fernap3/tsc-test#readme",
+  "homepage": "https://github.com/fernap3/typescript-test#readme",
   "dependencies": {
     "@types/dotenv": "^8.2.0",
     "@types/node": "^13.7.4",
