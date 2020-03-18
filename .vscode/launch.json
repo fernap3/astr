@@ -11,7 +11,7 @@
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"program": "${workspaceFolder}\\bin\\astr.js",
+			"program": "${workspaceFolder}\\bin\\run-tests.js",
 			"args": ["--testdir", "example-tests"],
 			"preLaunchTask": "tsc: build - tsconfig.json",
 			"outFiles": [
