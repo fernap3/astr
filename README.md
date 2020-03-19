@@ -1,5 +1,5 @@
-A test runner, made for simple integration with TypeScript projects.
-Supports asynchronous (promise-based) tests.
+astr is test runner, made for simple integration with TypeScript projects.
+It supports asynchronous (promise-based) tests.
 
     npm install --save astr
 
@@ -11,12 +11,12 @@ The above command will run tests found in all .js files in the `tests/` director
 
 Author your tests like this:
 
-    import { registerTest } from "astr";
+	import { registerTest } from "astr";
 
-    registerTest({
-    	name: "One equals one",
-    	func: async (assert) =>
-    	{
-		    assert.equals(1, 1);
-	    }
-    });
+	registerTest({
+		name: "One equals one",
+		func: async (assert) =>
+		{
+			assert.equals(1, 1);
+		}
+	});
