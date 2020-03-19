@@ -1,4 +1,4 @@
-const { registerTest } = require("../typescript-test.js") as typeof import("../typescript-test");
+const { registerTest } = require("../astr.js") as typeof import("../astr");
 
 registerTest({
 	name: "One equals one",

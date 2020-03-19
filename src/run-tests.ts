@@ -6,7 +6,7 @@ import fs = require("fs");
 import path = require("path");
 import { argv } from "yargs";
 
-import { tests, Assert, AssertionError } from "./typescript-test.js";
+import { tests, Assert, AssertionError } from "./astr.js";
 
 const consoleColors = {
 	Reset: "\x1b[0m",

@@ -1,1 +1,1 @@
-module.exports = require("./bin/typescript-test.js");
+module.exports = require("./bin/astr.js");
