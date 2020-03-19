@@ -1,6 +1,3 @@
-import dotenv = require("dotenv");
-dotenv.config();
-
 import process = require("process");
 import fs = require("fs");
 import path = require("path");

@@ -1,11 +1,11 @@
 {
   "name": "astr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A test runner written in TypeScript",
   "scripts": {
     "test": "npm run build && node bin/run-tests.js --testdir bin/example-tests",
-	"build": "npx tsc -p tsconfig.json",
-	"postinstall": "npm run build && cp src/astr.ts ./index.ts"
+    "build": "npx tsc -p tsconfig.json",
+    "postinstall": "npm run build && cp src/astr.ts ./index.ts"
   },
   "repository": {
     "type": "git",
@@ -18,10 +18,8 @@
   },
   "homepage": "https://github.com/fernap3/astr#readme",
   "dependencies": {
-    "@types/dotenv": "^8.2.0",
     "@types/node": "^13.7.4",
     "@types/yargs": "^15.0.4",
-    "dotenv": "^8.2.0",
     "typescript": "^3.8.2",
     "yargs": "^15.3.1"
   }
