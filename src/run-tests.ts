@@ -89,7 +89,8 @@ type AstrRuntime = "node" | "puppeteer";
 	let testNum = 0;
 	for (let module of tests)
 	{
-		console.log(`\nRunning tests from ${module.name}`);
+		if (module.name)
+			console.log(`\nRunning tests from ${module.name}`);
 		
 		for (let i = 0; i < module.tests.length; i++, testNum++)
 		{

@@ -86,7 +86,7 @@ export interface Test
 
 export interface TestModule
 {
-	name: string;
+	name: string | null;
 	testInit?: () => void;
 	tests: Test[];
 }
@@ -96,6 +96,12 @@ export const tests: TestModule[] = [];
 
 export function registerTest(test: Test): void
 {
+	if (tests.length === 0)
+		tests.push({
+			name: null,
+			tests: [],
+		});
+	
 	tests[tests.length - 1].tests.push(test);
 }
 
