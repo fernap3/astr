@@ -1,18 +1,18 @@
-export class Assert
+class Assert
 {
-	public equals(expected: any, actual: any, message?: string)
+	equals(expected, actual, message)
 	{
 		if (expected !== actual)
 			throw new AssertionError("equals", expected, actual, message);
 	}
 
-	public truthy(value: any, message?: string)
+	truthy(value, message)
 	{
 		if (value != true)
 			throw new AssertionError("truthy", undefined, undefined, message);
 	}
 
-	public throws(func: Function, message?: string)
+	throws(func, message)
 	{
 		let threw = false;
 		try
@@ -28,12 +28,12 @@ export class Assert
 			throw new AssertionError("throws", undefined, undefined, message);
 	}
 
-	private isPrimitive(obj: any)
+	isPrimitive(obj)
 	{
 		return (obj !== Object(obj));
 	}
 
-	public deepEqual(expected: any, actual: any, message?: string): void
+	deepEqual(expected, actual, message)
 	{
 		if (expected === actual) // it's just the same object. No need to compare.
         	return;
@@ -58,56 +58,29 @@ export class Assert
 	}
 }
 
-export class AssertionError
+class AssertionError
 {
-	constructor (public type: "equals" | "truthy" | "throws" | "deepEqual", public expected?: any, public actual?: any, public message?: string) { }
+	constructor (type, expected, actual, message)
+	{
+		this.astrError = true;
+		this.type = type;
+		this.expected = expected;
+		this.actual = actual;
+		this.message = message;
+	}
+
 	toJSON()
 	{
 		return {
+			astrError: true,
 			type: this.type,
 			expected: this.expected,
 			actual: this.actual,
 			message: this.message,
 		};
 	}
-
-	static fromJSON(errorObj: ReturnType<AssertionError["toJSON"]>): AssertionError
-	{
-		return new AssertionError(errorObj.type, errorObj.expected, errorObj.actual, errorObj.message);
-	}
 }
 
-export interface Test
-{
-	name: string;
-	dependencies?: string[];
-	func: (assert: Assert) => Promise<void>;
-}
-
-export interface TestModule
-{
-	name: string;
-	testInit?: () => void;
-	tests: Test[];
-}
-
-export const tests: TestModule[] = [];
-
-
-export function registerTest(test: Test): void
-{
-	tests[tests.length - 1].tests.push(test);
-}
-
-export function registerTestInit(func: () => void): void
-{
-	tests[tests.length - 1].testInit = func;
-}
-
-export function registerModule(name: string): void
-{
-	tests.push({
-		name: name,
-		tests: [],
-	});
-}
+window.astr = { 
+	Assert: Assert
+};

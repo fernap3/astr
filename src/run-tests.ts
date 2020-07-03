@@ -78,7 +78,7 @@ type AstrRuntime = "node" | "puppeteer";
 	if (runtime === "puppeteer")
 	{
 		browser = await puppeteer.launch({
-			headless: false,
+			headless: true,
 		});
 
 		page = await browser.newPage();
@@ -86,65 +86,87 @@ type AstrRuntime = "node" | "puppeteer";
 	
 	// TODO: Run any initializations that need to happen before the whole test run starts
 
-	for (let i = 0; i < tests.length; i++)
+	let testNum = 0;
+	for (let module of tests)
 	{
-		if (singleTestToRunIndex && i+1 !== singleTestToRunIndex)
-			continue;
-
-		// TODO: Run any initializations that need to happen before any one test runs
-
-		const test = tests[i];
-		process.stdout.write(`${consoleColors.FgYellow}${i + 1}: ${consoleColors.Reset}${test.name}...`)
-
-		try
+		console.log(`\nRunning tests from ${module.name}`);
+		
+		for (let i = 0; i < module.tests.length; i++, testNum++)
 		{
-			if (runtime === "node")
-				await test.func(new Assert());
-			else
-			{
-				await page!.reload();
-				await page!.addScriptTag({
-					path: path.join(__dirname, "astr-puppeteer.js")
-				});
+			if (singleTestToRunIndex && testNum + 1 !== singleTestToRunIndex)
+				continue;
 
-				for (let dependency of test.dependencies ?? [])
+
+			const test = module.tests[i];
+			process.stdout.write(`${consoleColors.FgYellow}${testNum + 1}: ${consoleColors.Reset}${test.name}...`)
+
+			try
+			{
+				if (runtime === "node")
 				{
-					await page!.addScriptTag({
-						path: path.join(testDir, dependency)
-					});
+					module.testInit?.();
+					await test.func(new Assert());
 				}
-
-				const error = await page!.evaluate(`
-					(async () => {
-						try {
-							await (${test.func.toString()})(new window.astr.Assert());
-						}
-						catch(e) {
-							return e;
-						}
-					})();
-				`) as ReturnType<AssertionError["toJSON"]>;
-
-				if (error)
-					throw AssertionError.fromJSON(error);
-			}
-			
-			process.stdout.write(`${consoleColors.FgGreen}PASS${consoleColors.Reset}\n`)
-			passedTests.push(test);
-		}
-		catch (err)
-		{
-			if (err instanceof AssertionError)
-			{
-				if (err.expected)
-					process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed: expected ${err.expected}, got ${err.actual}) ${err.message}\n`);
 				else
-					process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed) ${err.message}\n`);
-			}
-			else
-				process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (test threw error)\n${err}\n`);
+				{
+					await page!.reload();
+					await page!.addScriptTag({
+						path: path.join(__dirname, "astr-puppeteer.js")
+					});
 
-			failedTests.push(test);
+					for (let dependency of test.dependencies ?? [])
+					{
+						await page!.addScriptTag({
+							path: path.join(testDir, dependency)
+						});
+					}
+
+					const error = await page!.evaluate(`
+						(async () => {
+							try
+							{
+								await (${module.testInit?.toString()})?.();
+							}
+							catch(e)
+							{
+								return e.message;
+							}
+
+							try {
+								await (${test.func.toString()})(new window.astr.Assert());
+							}
+							catch(e) {
+								if (e.astrError)
+									return e;
+								else
+									return e.message;
+							}
+						})();
+					`) as ReturnType<AssertionError["toJSON"]>;
+
+					if (error?.type)
+						throw AssertionError.fromJSON(error);
+					else if(error)
+						throw error;
+				}
+				
+				process.stdout.write(`${consoleColors.FgGreen}PASS${consoleColors.Reset}\n`)
+				passedTests.push(test);
+			}
+			catch (err)
+			{
+				if (err instanceof AssertionError)
+				{
+					if (err.expected)
+						process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed: expected ${err.expected}, got ${err.actual}) ${err.message ?? ""}\n`);
+					else
+						process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed) ${err.message ?? ""}\n`);
+				}
+				else
+					process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (test threw error)\n${err}\n`);
+
+				failedTests.push(test);
+			}
 		}
 	}
 	
@@ -153,10 +175,10 @@ type AstrRuntime = "node" | "puppeteer";
 	else
 		console.log(`All ${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} tests passing`);
 
-	// if (failedTests.length)
-	// 	process.exit(-1);
-	// else
-	// 	process.exit(0);
+	if (failedTests.length)
+		process.exit(-1);
+	else
+		process.exit(0);
 })();
 
 function scrapeTests(testDir: string)
