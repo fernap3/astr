@@ -204,8 +204,9 @@ function scrapeTests(testDir: string)
 
 function printArgs()
 {
-	console.log(`npm test --testdir tests/            - Run all tests`);
-	console.log(`npm test --testdir tests/ --index 5  - Run just the fifth test`);
-	console.log(`npm test --testdir tests/ --list     - Show all the tests`);
-	console.log(`npm test --help                      - Show this documentation`);
+	console.log(`npm test --testdir tests/                     - Run all tests, under NodeJS`);
+	console.log(`npm test --testdir tests/ --runtime puppeteer - Run all tests, in Chromium`);
+	console.log(`npm test --testdir tests/ --index 5           - Run just the fifth test`);
+	console.log(`npm test --testdir tests/ --list              - Show all the tests`);
+	console.log(`npm test --help                               - Show this documentation`);
 }
