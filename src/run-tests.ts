@@ -139,7 +139,7 @@ type AstrRuntime = "node" | "puppeteer";
 								if (e.astrError)
 									return e;
 								else
-									return e.message;
+									return e.message + " " + e.stack;
 							}
 						})();
 					`) as ReturnType<AssertionError["toJSON"]>;
