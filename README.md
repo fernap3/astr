@@ -19,17 +19,19 @@ The above command will run tests found in all .js files in the `tests/` director
 
 Author your tests like this:
 
-	import { registerTest, registerModule } from "astr";
+```typescript
+import { registerTest, registerModule } from "astr";
 
-	registerModule("Basic tests");
+registerModule("Basic tests");
 
-	registerTest({
-		name: "One equals one",
-		func: async (assert) =>
-		{
-			assert.equals(1, 1);
-		}
-	});
+registerTest({
+	name: "One equals one",
+	func: async (assert) =>
+	{
+		assert.equals(1, 1);
+	}
+});
+```
 
 To run tests in Chromium instead, use the `--runtime` argument:
 
@@ -41,7 +43,7 @@ When tests run in Chromium, note that the function passed as the `func` property
 
 The `astr` module exposes the following functions and interfaces:
 
-```
+```typescript
 registerTest(options: {
 	/** A name for the test. Used when displaying test results */
 	name: string,
@@ -54,7 +56,7 @@ registerTest(options: {
 })
 ```
 
-```
+```typescript
 /**
   * Indicates that subsequent calls to registerTest should place tests inside a module with
   * a given name. Test modules are used to group test result output. Calls to registerTest
@@ -64,14 +66,14 @@ registerTest(options: {
 registerModule(name: string)
 ```
 
-```
+```typescript
 /**
   * Registers a function to be called before every test in the current module
  */
 registerTestInit(func: () => void | Promise<void>))
 ```
 
-```
+```typescript
 interface Assert
 {
 	equals(expected: any, actual: any, message?: string);
