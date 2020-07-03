@@ -4,7 +4,7 @@
   "description": "A test runner written in TypeScript",
   "scripts": {
     "test": "npm run build && node bin/run-tests.js --testdir bin/example-tests",
-    "build": "npx tsc -p tsconfig.json",
+    "build": "npx tsc -p tsconfig.json && cp src/astr-puppeteer.js bin",
     "postinstall": "npm run build && cp src/astr.ts ./index.ts"
   },
   "repository": {
@@ -19,7 +19,9 @@
   "homepage": "https://github.com/fernap3/astr#readme",
   "dependencies": {
     "@types/node": "^13.7.4",
+    "@types/puppeteer": "^3.0.1",
     "@types/yargs": "^15.0.4",
+    "puppeteer": "^5.0.0",
     "typescript": "^3.8.2",
     "yargs": "^15.3.1"
   }

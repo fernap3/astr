@@ -2,6 +2,7 @@ import process = require("process");
 import fs = require("fs");
 import path = require("path");
 import { argv } from "yargs";
+import * as puppeteer from "puppeteer";
 
 import { tests, Assert, AssertionError } from "./astr.js";
 
@@ -33,6 +34,7 @@ const consoleColors = {
 	BgWhite: "\x1b[47m",
 };
 
+type AstrRuntime = "node" | "puppeteer";
 
 (async () =>
 {
@@ -43,6 +45,7 @@ const consoleColors = {
 	const showHelp: boolean = argv.help as boolean ?? false;
 	const listTests: boolean = argv.list as boolean ?? false;
 	const testDir = argv.testdir as string | undefined;
+	const runtime = (argv.runtime || "node") as AstrRuntime;
 
 	if (showHelp)
 	{
@@ -69,6 +72,17 @@ const consoleColors = {
 		process.exit(0);
 	}
 
+	let browser: puppeteer.Browser;
+	let page: puppeteer.Page;
+
+	if (runtime === "puppeteer")
+	{
+		browser = await puppeteer.launch({
+			headless: false,
+		});
+
+		page = await browser.newPage();
+	}
 	
 	// TODO: Run any initializations that need to happen before the whole test run starts
 
@@ -84,14 +98,49 @@ const consoleColors = {
 
 		try
 		{
-			await test.func(new Assert());
+			if (runtime === "node")
+				await test.func(new Assert());
+			else
+			{
+				await page!.reload();
+				await page!.addScriptTag({
+					path: path.join(__dirname, "astr-puppeteer.js")
+				});
+
+				for (let dependency of test.dependencies ?? [])
+				{
+					await page!.addScriptTag({
+						path: path.join(testDir, dependency)
+					});
+				}
+
+				const error = await page!.evaluate(`
+					(async () => {
+						try {
+							await (${test.func.toString()})(new window.astr.Assert());
+						}
+						catch(e) {
+							return e;
+						}
+					})();
+				`) as ReturnType<AssertionError["toJSON"]>;
+
+				if (error)
+					throw AssertionError.fromJSON(error);
+			}
+			
 			process.stdout.write(`${consoleColors.FgGreen}PASS${consoleColors.Reset}\n`)
 			passedTests.push(test);
 		}
 		catch (err)
 		{
 			if (err instanceof AssertionError)
-				process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed: expected ${err.expected}, got ${err.actual})\n`);
+			{
+				if (err.expected)
+					process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed: expected ${err.expected}, got ${err.actual}) ${err.message}\n`);
+				else
+					process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed) ${err.message}\n`);
+			}
 			else
 				process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (test threw error)\n${err}\n`);
 
@@ -104,10 +153,10 @@ const consoleColors = {
 	else
 		console.log(`All ${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} tests passing`);
 
-	if (failedTests.length)
-		process.exit(-1);
-	else
-		process.exit(0);
+	// if (failedTests.length)
+	// 	process.exit(-1);
+	// else
+	// 	process.exit(0);
 })();
 
 function scrapeTests(testDir: string)
