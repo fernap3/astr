@@ -64,10 +64,15 @@ type AstrRuntime = "node" | "puppeteer";
 
 	if (listTests)
 	{
-		for (let i = 0; i < tests.length; i++)
+		let testNum = 0;
+		for (const testModule of tests)
 		{
-			const test = tests[i];
-			console.log(`${consoleColors.FgYellow}${i + 1}: ${consoleColors.Reset}${test.name}`);
+			console.log(`${testModule.name}`);
+			for (const test of testModule.tests)
+			{
+				console.log(`${consoleColors.FgYellow}${testNum + 1}: ${consoleColors.Reset}${test.name}`);
+				testNum++;
+			}
 		}
 		process.exit(0);
 	}
@@ -197,7 +202,7 @@ function scrapeTests(testDir: string)
 		if (!(/.js$/.test(fileName)))
 			continue;
 		
-		console.log(`Found tests in ${path.join(testDir, fileName)}`)
+		// console.log(`Found tests in ${path.join(testDir, fileName)}`);
 		require(path.join(testDir, fileName));
 	}
 }
