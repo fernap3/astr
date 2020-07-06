@@ -3,6 +3,7 @@ import fs = require("fs");
 import path = require("path");
 import { argv } from "yargs";
 import * as puppeteer from "puppeteer";
+import * as supportsColor from "supports-color";
 
 import { tests, Assert, AssertionError } from "./astr.js";
 
@@ -34,7 +35,25 @@ const consoleColors = {
 	BgWhite: "\x1b[47m",
 };
 
+const consoleColorSequences = new Set(Object.values(consoleColors));
+
 type AstrRuntime = "node" | "puppeteer";
+
+
+function withColor(strings: TemplateStringsArray, ...vars: any[]): string
+{
+	let result = [] as string[];
+	
+	for (let i = 0; i < strings.length; i++)
+	{
+		result.push(strings[i]);
+
+		if (vars[i] && (supportsColor.stdout || !consoleColorSequences.has(vars[i])))
+			result.push(vars[i]);
+	}
+
+	return result.join("");
+}
 
 (async () =>
 {
@@ -70,7 +89,7 @@ type AstrRuntime = "node" | "puppeteer";
 			console.log(`${testModule.name}`);
 			for (const test of testModule.tests)
 			{
-				console.log(`${consoleColors.FgYellow}${testNum + 1}: ${consoleColors.Reset}${test.name}`);
+				console.log(withColor`${consoleColors.FgYellow}${testNum + 1}: ${consoleColors.Reset}${test.name}`);
 				testNum++;
 			}
 		}
@@ -104,7 +123,7 @@ type AstrRuntime = "node" | "puppeteer";
 
 
 			const test = module.tests[i];
-			process.stdout.write(`${consoleColors.FgYellow}${testNum + 1}: ${consoleColors.Reset}${test.name}...`)
+			process.stdout.write(withColor`${consoleColors.FgYellow}${testNum + 1}: ${consoleColors.Reset}${test.name}...`)
 
 			try
 			{
@@ -156,7 +175,7 @@ type AstrRuntime = "node" | "puppeteer";
 						throw error;
 				}
 				
-				process.stdout.write(`${consoleColors.FgGreen}PASS${consoleColors.Reset}\n`)
+				process.stdout.write(withColor`${consoleColors.FgGreen}PASS${consoleColors.Reset}\n`)
 				passedTests.push(test);
 			}
 			catch (err)
@@ -164,12 +183,12 @@ type AstrRuntime = "node" | "puppeteer";
 				if (err instanceof AssertionError)
 				{
 					if (err.expected)
-						process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed: expected ${err.expected}, got ${err.actual}) ${err.message ?? ""}\n`);
+						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed: expected ${err.expected}, got ${err.actual}) ${err.message ?? ""}\n`);
 					else
-						process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed) ${err.message ?? ""}\n`);
+						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed) ${err.message ?? ""}\n`);
 				}
 				else
-					process.stdout.write(`${consoleColors.FgRed}FAIL${consoleColors.Reset} (test threw error)\n${err}\n`);
+					process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (test threw error)\n${err}\n`);
 
 				failedTests.push(test);
 			}
@@ -177,9 +196,9 @@ type AstrRuntime = "node" | "puppeteer";
 	}
 	
 	if (failedTests.length)
-		console.log(`${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} passing, ${consoleColors.FgRed}${failedTests.length}${consoleColors.Reset} failing`);
+		console.log(withColor`${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} passing, ${consoleColors.FgRed}${failedTests.length}${consoleColors.Reset} failing`);
 	else
-		console.log(`All ${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} tests passing`);
+		console.log(withColor`All ${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} tests passing`);
 
 	if (failedTests.length)
 		process.exit(-1);
