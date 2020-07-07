@@ -5,10 +5,11 @@ import { argv } from "yargs";
 import * as puppeteer from "puppeteer";
 import * as supportsColor from "supports-color";
 
-import { Assert, AssertionError, Test, TestModule, TestResultTest } from "./astr.js";
+import { Assert, AssertionError, Test, TestModule } from "./astr.js";
 import * as astr from "./astr.js";
 import { writeTrx } from "./trx.js";
-import { tests, state } from "./tests.js";
+import { tests, state, TestResult, TestStatus, TestResultTest } from "./tests.js";
+import { dirname } from "path";
 
 const consoleColors = {
 	Reset: "\x1b[0m",
@@ -44,14 +45,6 @@ type AstrRuntime = "node" | "puppeteer";
 export type FinalResults = Map<TestResultTest, TestResult>;
 const results: FinalResults = new Map<TestResultTest, TestResult>();
 
-type TestStatus = "pass" | "fail";
-
-interface TestResult
-{
-	status: TestStatus;
-	startTime: Date;
-	endTime: Date;
-}
 
 
 function withColor(strings: TemplateStringsArray, ...vars: any[]): string
@@ -233,13 +226,23 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 		console.log(withColor`All ${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} tests passing`);
 
 	if (trxOutPath)
+	{
+		ensureDirectoryExists(trxOutPath);
 		await writeTrx(results, trxOutPath);
+	}
 
 	if (failedTests.length)
 		process.exit(-1);
 	else
 		process.exit(0);
 })();
+
+function ensureDirectoryExists(filePath: string)
+{
+	const dirName = path.dirname(filePath);
+	if (!fs.existsSync(dirName))
+		fs.mkdirSync(dirName, { recursive: true });
+}
 
 function scrapeTests(testDir: string)
 {

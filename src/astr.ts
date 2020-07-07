@@ -87,11 +87,6 @@ export interface Test
 	filePath?: string;
 }
 
-export interface TestResultTest extends Test
-{
-	moduleName: string;
-}
-
 export interface TestModule
 {
 	name: string | null;
