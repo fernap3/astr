@@ -86,6 +86,13 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 		console.log("\nError: must supply test directory with --testdir")
 		process.exit(0);
 	}
+
+	if (trxOutPath != null && (typeof trxOutPath !== "string" || trxOutPath === ""))
+	{
+		printArgs();
+		console.log("\nError: must supply an output file path with --trx (eg. --trx outfile.trx)")
+		process.exit(0);
+	}
 	
 	scrapeTests(path.resolve(testDir));
 
@@ -270,9 +277,10 @@ function scrapeTests(testDir: string)
 
 function printArgs()
 {
-	console.log(`npm test --testdir tests/                     - Run all tests, under NodeJS`);
-	console.log(`npm test --testdir tests/ --runtime puppeteer - Run all tests, in Chromium`);
-	console.log(`npm test --testdir tests/ --index 5           - Run just the fifth test`);
-	console.log(`npm test --testdir tests/ --list              - Show all the tests`);
-	console.log(`npm test --help                               - Show this documentation`);
+	console.log(`npm test --testdir tests/                       - Run all tests, under NodeJS`);
+	console.log(`npm test --testdir tests/ --runtime puppeteer   - Run all tests, in Chromium`);
+	console.log(`npm test --testdir tests/ --index 5             - Run just the fifth test`);
+	console.log(`npm test --testdir tests/ --list                - Show all the tests`);
+	console.log(`npm test --testdir tests/ --trx results/out.trx - Output to a TRX file`);
+	console.log(`npm test --help                                 - Show this documentation`);
 }
