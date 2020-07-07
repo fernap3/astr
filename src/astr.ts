@@ -1,3 +1,5 @@
+import { tests, state } from "./tests";
+
 export class Assert
 {
 	public equals(expected: any, actual: any, message?: string)
@@ -82,6 +84,12 @@ export interface Test
 	name: string;
 	dependencies?: string[];
 	func: (assert: Assert) => Promise<void>;
+	filePath?: string;
+}
+
+export interface TestResultTest extends Test
+{
+	moduleName: string;
 }
 
 export interface TestModule
@@ -91,18 +99,22 @@ export interface TestModule
 	tests: Test[];
 }
 
-export const tests: TestModule[] = [];
 
 
 export function registerTest(test: Test): void
 {
 	if (tests.length === 0)
+	{
 		tests.push({
 			name: null,
 			tests: [],
 		});
-	
-	tests[tests.length - 1].tests.push(test);
+	}
+
+	tests[tests.length - 1].tests.push({
+		...test,
+		filePath: state.currentTestFilePath!,
+	});
 }
 
 export function registerTestInit(func: () => void): void

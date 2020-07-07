@@ -5,7 +5,10 @@ import { argv } from "yargs";
 import * as puppeteer from "puppeteer";
 import * as supportsColor from "supports-color";
 
-import { tests, Assert, AssertionError } from "./astr.js";
+import { Assert, AssertionError, Test, TestModule, TestResultTest } from "./astr.js";
+import * as astr from "./astr.js";
+import { writeTrx } from "./trx.js";
+import { tests, state } from "./tests.js";
 
 const consoleColors = {
 	Reset: "\x1b[0m",
@@ -38,6 +41,17 @@ const consoleColors = {
 const consoleColorSequences = new Set(Object.values(consoleColors));
 
 type AstrRuntime = "node" | "puppeteer";
+export type FinalResults = Map<TestResultTest, TestResult>;
+const results: FinalResults = new Map<TestResultTest, TestResult>();
+
+type TestStatus = "pass" | "fail";
+
+interface TestResult
+{
+	status: TestStatus;
+	startTime: Date;
+	endTime: Date;
+}
 
 
 function withColor(strings: TemplateStringsArray, ...vars: any[]): string
@@ -65,6 +79,7 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 	const listTests: boolean = argv.list as boolean ?? false;
 	const testDir = argv.testdir as string | undefined;
 	const runtime = (argv.runtime || "node") as AstrRuntime;
+	const trxOutPath = argv.trx as string | undefined;
 
 	if (showHelp)
 	{
@@ -125,6 +140,9 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 			const test = module.tests[i];
 			process.stdout.write(withColor`${consoleColors.FgYellow}${testNum + 1}: ${consoleColors.Reset}${test.name}...`)
 
+			const startTime = new Date();
+			let testStatus = "pass" as TestStatus;
+
 			try
 			{
 				if (runtime === "node")
@@ -180,6 +198,8 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 			}
 			catch (err)
 			{
+				testStatus = "fail";
+				
 				if (err instanceof AssertionError)
 				{
 					if (err.expected)
@@ -192,6 +212,18 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 
 				failedTests.push(test);
 			}
+
+			results.set(
+				{
+					...test,
+					moduleName: module.name ?? "(No module)"
+				},
+				{
+					startTime,
+					endTime: new Date(),
+					status: testStatus,
+				}
+			);
 		}
 	}
 	
@@ -199,6 +231,9 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 		console.log(withColor`${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} passing, ${consoleColors.FgRed}${failedTests.length}${consoleColors.Reset} failing`);
 	else
 		console.log(withColor`All ${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} tests passing`);
+
+	if (trxOutPath)
+		await writeTrx(results, trxOutPath);
 
 	if (failedTests.length)
 		process.exit(-1);
@@ -217,12 +252,16 @@ function scrapeTests(testDir: string)
 	const dirEntries = fs.readdirSync(testDir);
 
 	for (let fileName of dirEntries)
-	{
+	{	
+		const fullFilePath = path.join(testDir, fileName);
+
+		state.currentTestFilePath = fullFilePath;
+		
 		if (!(/.js$/.test(fileName)))
 			continue;
 		
 		// console.log(`Found tests in ${path.join(testDir, fileName)}`);
-		require(path.join(testDir, fileName));
+		require(fullFilePath);
 	}
 }
 
