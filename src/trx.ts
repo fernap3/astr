@@ -3,6 +3,7 @@ import * as builder from "xmlbuilder";
 import { guid } from "./utils";
 import { writeFileSync } from "fs";
 import username = require("username");
+import { hostname } from "os";
 
 export async function writeTrx(results: FinalResults, trxOutFile: string)
 {
@@ -46,7 +47,7 @@ export async function writeTrx(results: FinalResults, trxOutFile: string)
 			executionId: "",
 			testListId: "",
 			outcome: testResult.status === "fail" ? "Failed" : "Passed",
-			computerName: "",
+			computerName: hostname(),
 			startTime: testResult.startTime.toISOString(),
 			endTime: testResult.endTime.toISOString(),
 			duration: `${hours}:${minutes}:${seconds}`,
