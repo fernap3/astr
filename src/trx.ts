@@ -15,7 +15,44 @@ export async function writeTrx(results: FinalResults, trxOutFile: string)
 		"xmlns": "http://microsoft.com/schemas/VisualStudio/TeamTest/2010",
 	});
 
-	const xmlText = root.end({ pretty: true });
+	const resultValues = [...results.values()];
 
+	const summaryOutcome = resultValues
+	  .some(r => r.status === "fail") ? "Failed" : "Passed";
+
+	const resultSummary = root.ele("ResultSummary", { "outcome": summaryOutcome });
+	resultSummary.ele("Counters", {
+		total: results.size,
+		executed: results.size,
+		passed: resultValues.filter(r => r.status === "pass").length,
+	});
+
+	const resultsNode = root.ele("Results");
+
+	for (const result of results)
+	{
+		const test = result[0];
+		const testResult = result[1];
+
+		const durationMs = testResult.endTime.getTime() - testResult.startTime.getTime();
+		const hours = Math.floor(durationMs / 1000 / 60 / 60).toString().padStart(2, "0");
+		const minutes = Math.floor(durationMs / 1000 / 60).toString().padStart(2, "0");
+		const seconds = Math.floor(durationMs / 1000).toString().padStart(2, "0");
+		
+		resultsNode.ele("UnitTestResult", {
+			testName: test.name,
+			testType: "",
+			testId: "",
+			executionId: "",
+			testListId: "",
+			outcome: testResult.status === "fail" ? "Failed" : "Passed",
+			computerName: "",
+			startTime: testResult.startTime.toISOString(),
+			endTime: testResult.endTime.toISOString(),
+			duration: `${hours}:${minutes}:${seconds}`,
+		});
+	}
+
+	const xmlText = root.end({ pretty: true });
 	writeFileSync(trxOutFile, xmlText);
 }
