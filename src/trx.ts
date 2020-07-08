@@ -61,11 +61,17 @@ export async function writeTrx(results: FinalResults, trxOutFile: string)
 	  .some(r => r.status === "fail") ? "Failed" : "Passed";
 
 	const resultSummary = root.ele("ResultSummary", { "outcome": summaryOutcome });
-	resultSummary.ele("Counters", {
+	const testsPassed = resultValues.filter(r => r.status === "pass").length;
+	const testsFailed = results.size - testsPassed;
+	const countersNode = resultSummary.ele("Counters", {
 		total: results.size,
 		executed: results.size,
-		passed: resultValues.filter(r => r.status === "pass").length,
+		passed: testsPassed,
 	});
+
+	if (testsFailed > 0)
+		countersNode.att("failed", testsFailed);
+
 
 	const resultsNode = root.ele("Results");
 
@@ -80,7 +86,7 @@ export async function writeTrx(results: FinalResults, trxOutFile: string)
 			const minutes = Math.floor(durationMs / 1000 / 60).toString().padStart(2, "0");
 			const seconds = Math.floor(durationMs / 1000).toString().padStart(2, "0");
 			
-			resultsNode.ele("UnitTestResult", {
+			const unitTestResultNode = resultsNode.ele("UnitTestResult", {
 				testName: testEntry.test.name,
 				testType: "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b",
 				testId: testEntry.testId,
@@ -92,6 +98,18 @@ export async function writeTrx(results: FinalResults, trxOutFile: string)
 				endTime: testResult.endTime.toISOString(),
 				duration: `${hours}:${minutes}:${seconds}`,
 			});
+
+			if (testResult.status === "fail")
+			{
+				unitTestResultNode.ele("Output")
+					.ele("ErrorInfo")
+					.ele("Message", {
+						"xmlns:q1": "http://www.w3.org/2001/XMLSchema",
+						"d6p1:type": "q1:string",
+						"xmlns:d6p1": "http://www.w3.org/2001/XMLSchema-instance",
+					})
+					.text(testResult.errorMessage!);
+			}
 		}
 	}
 

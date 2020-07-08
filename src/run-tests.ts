@@ -142,6 +142,7 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 
 			const startTime = new Date();
 			let testStatus = "pass" as TestStatus;
+			let testErrorMessage = undefined as string | undefined;
 
 			try
 			{
@@ -203,12 +204,21 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 				if (err instanceof AssertionError)
 				{
 					if (err.expected)
-						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed: expected ${err.expected}, got ${err.actual}) ${err.message ?? ""}\n`);
+					{
+						testErrorMessage = `${err.type} assertion failed: expected ${err.expected}, got ${err.actual}. ${err.message ?? ""}`;
+						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} ${testErrorMessage}\n`);
+					}
 					else
-						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed) ${err.message ?? ""}\n`);
+					{
+						testErrorMessage = `${err.type} assertion failed: ${err.message ?? ""}`;
+						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} ${testErrorMessage}\n`);
+					}
 				}
 				else
-					process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (test threw error)\n${err}\n`);
+				{
+					testErrorMessage = `Test threw error: \n${err}`;
+					process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} ${testErrorMessage}\n`);
+				}
 
 				failedTests.push(test);
 			}
@@ -222,6 +232,7 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 					startTime,
 					endTime: new Date(),
 					status: testStatus,
+					errorMessage: testErrorMessage,
 				}
 			);
 		}

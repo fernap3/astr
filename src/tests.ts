@@ -16,6 +16,7 @@ export interface TestResult
 	status: TestStatus;
 	startTime: Date;
 	endTime: Date;
+	errorMessage?: string;
 }
 
 export interface TestResultTest extends Test
