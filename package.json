@@ -1,6 +1,6 @@
 {
   "name": "astr",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "description": "Run TypeScript/JavaScript tests in NodeJS or Chromium",
   "scripts": {
     "test": "npm run build && node bin/run-tests.js --testdir bin/example-tests",
