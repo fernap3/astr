@@ -5,7 +5,11 @@ import { argv } from "yargs";
 import * as puppeteer from "puppeteer";
 import * as supportsColor from "supports-color";
 
-import { tests, Assert, AssertionError } from "./astr.js";
+import { Assert, AssertionError, Test, TestModule } from "./astr.js";
+import * as astr from "./astr.js";
+import { writeTrx } from "./trx.js";
+import { tests, state, TestResult, TestStatus, TestResultTest } from "./tests.js";
+import { dirname } from "path";
 
 const consoleColors = {
 	Reset: "\x1b[0m",
@@ -38,6 +42,9 @@ const consoleColors = {
 const consoleColorSequences = new Set(Object.values(consoleColors));
 
 type AstrRuntime = "node" | "puppeteer";
+export type FinalResults = Map<TestResultTest, TestResult>;
+const results: FinalResults = new Map<TestResultTest, TestResult>();
+
 
 
 function withColor(strings: TemplateStringsArray, ...vars: any[]): string
@@ -65,6 +72,7 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 	const listTests: boolean = argv.list as boolean ?? false;
 	const testDir = argv.testdir as string | undefined;
 	const runtime = (argv.runtime || "node") as AstrRuntime;
+	const trxOutPath = argv.trx as string | undefined;
 
 	if (showHelp)
 	{
@@ -76,6 +84,13 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 	{
 		printArgs();
 		console.log("\nError: must supply test directory with --testdir")
+		process.exit(0);
+	}
+
+	if (trxOutPath != null && (typeof trxOutPath !== "string" || trxOutPath === ""))
+	{
+		printArgs();
+		console.log("\nError: must supply an output file path with --trx (eg. --trx outfile.trx)")
 		process.exit(0);
 	}
 	
@@ -124,6 +139,10 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 
 			const test = module.tests[i];
 			process.stdout.write(withColor`${consoleColors.FgYellow}${testNum + 1}: ${consoleColors.Reset}${test.name}...`)
+
+			const startTime = new Date();
+			let testStatus = "pass" as TestStatus;
+			let testErrorMessage = undefined as string | undefined;
 
 			try
 			{
@@ -180,18 +199,42 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 			}
 			catch (err)
 			{
+				testStatus = "fail";
+				
 				if (err instanceof AssertionError)
 				{
 					if (err.expected)
-						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed: expected ${err.expected}, got ${err.actual}) ${err.message ?? ""}\n`);
+					{
+						testErrorMessage = `${err.type} assertion failed: expected ${err.expected}, got ${err.actual}. ${err.message ?? ""}`;
+						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} ${testErrorMessage}\n`);
+					}
 					else
-						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (${err.type} assertion failed) ${err.message ?? ""}\n`);
+					{
+						testErrorMessage = `${err.type} assertion failed: ${err.message ?? ""}`;
+						process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} ${testErrorMessage}\n`);
+					}
 				}
 				else
-					process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} (test threw error)\n${err}\n`);
+				{
+					testErrorMessage = `Test threw error: \n${err}`;
+					process.stdout.write(withColor`${consoleColors.FgRed}FAIL${consoleColors.Reset} ${testErrorMessage}\n`);
+				}
 
 				failedTests.push(test);
 			}
+
+			results.set(
+				{
+					...test,
+					moduleName: module.name ?? "(No module)"
+				},
+				{
+					startTime,
+					endTime: new Date(),
+					status: testStatus,
+					errorMessage: testErrorMessage,
+				}
+			);
 		}
 	}
 	
@@ -200,11 +243,24 @@ function withColor(strings: TemplateStringsArray, ...vars: any[]): string
 	else
 		console.log(withColor`All ${consoleColors.FgGreen}${passedTests.length}${consoleColors.Reset} tests passing`);
 
+	if (trxOutPath)
+	{
+		ensureDirectoryExists(trxOutPath);
+		await writeTrx(results, trxOutPath);
+	}
+
 	if (failedTests.length)
 		process.exit(-1);
 	else
 		process.exit(0);
 })();
+
+function ensureDirectoryExists(filePath: string)
+{
+	const dirName = path.dirname(filePath);
+	if (!fs.existsSync(dirName))
+		fs.mkdirSync(dirName, { recursive: true });
+}
 
 function scrapeTests(testDir: string)
 {
@@ -217,20 +273,25 @@ function scrapeTests(testDir: string)
 	const dirEntries = fs.readdirSync(testDir);
 
 	for (let fileName of dirEntries)
-	{
+	{	
+		const fullFilePath = path.join(testDir, fileName);
+
+		state.currentTestFilePath = fullFilePath;
+		
 		if (!(/.js$/.test(fileName)))
 			continue;
 		
 		// console.log(`Found tests in ${path.join(testDir, fileName)}`);
-		require(path.join(testDir, fileName));
+		require(fullFilePath);
 	}
 }
 
 function printArgs()
 {
-	console.log(`npm test --testdir tests/                     - Run all tests, under NodeJS`);
-	console.log(`npm test --testdir tests/ --runtime puppeteer - Run all tests, in Chromium`);
-	console.log(`npm test --testdir tests/ --index 5           - Run just the fifth test`);
-	console.log(`npm test --testdir tests/ --list              - Show all the tests`);
-	console.log(`npm test --help                               - Show this documentation`);
+	console.log(`npm test --testdir tests/                       - Run all tests, under NodeJS`);
+	console.log(`npm test --testdir tests/ --runtime puppeteer   - Run all tests, in Chromium`);
+	console.log(`npm test --testdir tests/ --index 5             - Run just the fifth test`);
+	console.log(`npm test --testdir tests/ --list                - Show all the tests`);
+	console.log(`npm test --testdir tests/ --trx results/out.trx - Output to a TRX file`);
+	console.log(`npm test --help                                 - Show this documentation`);
 }
