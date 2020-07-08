@@ -39,6 +39,27 @@ To run tests in Chromium instead, use the `--runtime` argument:
 
 When tests run in Chromium, note that the function passed as the `func` property to `registerTest` will execute in the context of the browser page. In this case, the function can access `window`, `document`, etc., but keep in mind that variables outside of the function body will not be in scope during execution.
 
+## Command line flags
+`--help`
+
+Show usage instructions
+
+`--list`
+
+Only list found tests, don't run them.
+
+`--testdir [path/to/tests]`
+
+Directory to look in to find tests. Will assume all files with names ending in ".js" are test files.
+
+`--runtime [node|puppeteer]`
+
+Which runtime to use to run the tests. Defaults to "node."
+
+`--trx [path/to/outfile.trx]`
+
+Outputs results as a TRX file
+
 ## API
 
 The `astr` module exposes the following functions and interfaces:
