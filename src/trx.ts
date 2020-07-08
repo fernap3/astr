@@ -82,9 +82,7 @@ export async function writeTrx(results: FinalResults, trxOutFile: string)
 			const testResult = testEntry.testResult;
 
 			const durationMs = testResult.endTime.getTime() - testResult.startTime.getTime();
-			const hours = Math.floor(durationMs / 1000 / 60 / 60).toString().padStart(2, "0");
-			const minutes = Math.floor(durationMs / 1000 / 60).toString().padStart(2, "0");
-			const seconds = Math.floor(durationMs / 1000).toString().padStart(2, "0");
+			const { hours, minutes, seconds, ms } = msToComponents(durationMs);
 			
 			const unitTestResultNode = resultsNode.ele("UnitTestResult", {
 				testName: testEntry.test.name,
@@ -96,7 +94,7 @@ export async function writeTrx(results: FinalResults, trxOutFile: string)
 				computerName: hostname(),
 				startTime: testResult.startTime.toISOString(),
 				endTime: testResult.endTime.toISOString(),
-				duration: `${hours}:${minutes}:${seconds}`,
+				duration: `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`,
 			});
 
 			if (testResult.status === "fail")
@@ -179,3 +177,20 @@ export async function writeTrx(results: FinalResults, trxOutFile: string)
 	writeFileSync(trxOutFile, xmlText);
 }
 
+function msToComponents(ms: number): { hours: number, minutes: number, seconds: number, ms: number }
+{
+	ms = Math.floor(ms);
+	
+	const hours = Math.floor(ms / 1000 / 60 / 60);
+	ms -= hours * 1000 * 60 * 60;
+
+	const minutes = Math.floor(ms / 1000 / 60);
+	ms -= hours * 1000 * 60;
+
+	const seconds = Math.floor(ms / 1000);
+	ms -= hours * 1000;
+
+	return {
+		hours, minutes, seconds, ms
+	};
+}
