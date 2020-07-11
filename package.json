@@ -1,11 +1,11 @@
 {
   "name": "astr",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Run TypeScript/JavaScript tests in NodeJS or Chromium",
   "scripts": {
     "test": "npm run build && node bin/run-tests.js --testdir bin/example-tests",
-    "build": "node_modules/typescript/bin/tsc -p tsconfig.json && node_modules/ncp/bin/ncp src/astr-puppeteer.js bin/astr-puppeteer.js",
-    "postinstall": "npm run build && node_modules/ncp/bin/ncp src/astr.ts ./index.ts"
+    "build": "npx tsc -p tsconfig.json && npx ncp src/astr-puppeteer.js bin/astr-puppeteer.js",
+    "postinstall": "npm run build && npx ncp src/astr.ts ./index.ts"
   },
   "repository": {
     "type": "git",
